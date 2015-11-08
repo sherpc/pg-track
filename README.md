@@ -20,6 +20,8 @@ https://github.com/github/markup/issues/77
  :constraints [vector-of-constraints]}
 ```
 
+Ключ `:constraints` пока не реализован.
+
 ### Колонка
 
 Колонка это hashmap вида:
@@ -65,11 +67,44 @@ https://github.com/github/markup/issues/77
 
 ## DSL
 
+Есть "внутренний" dsl и более простой финальный (на текущий момент) вариант.
+
 ### Таблица
+
+Все предельно просто --- функция от одного аргумента, название таблицы.
+
+```clojure
+(table* "table-name")
+
+(def table-base (table* tbl-name))
+(expect {:name tbl-name :columns []} table-base)
+```
 
 ### Добавление колонки
 
+Функция `column*` принимает таблицу, название колонки и keyword типа колонки. Дальше идет размер типа (если он нужен) и опции. Каждая опция --- либо просто keyword, либо вектор из двух элементов `[keyword value]`. Примеры:
+
+```clojure
+(def test-table-dsl
+  (-> table-base
+      (column* "code" :char 5)
+      (column* "title" :varchar 40 :not-null [:check "title <> ''"])
+      (column* "did" :integer :primary-key [:default "nextval('serial')"])
+      (column* "date_prod" :date)))
+```
+
 ### Общий dsl для описания таблицы
+
+Объединяет два предыдущих. Функция `table` принимает название таблицы и последовательность аргументов для функции `column*`. Мы можем понять, как разбить эту последовательность на колонки, т.к. колонка всегда начинается с аргумента типа строка (название колонки), и строковых аргументов больше нет (это либо keyword типа или опции, либо number размера типа, либо вектор опции). Таблица из предыдущего примера может быть записана так:
+
+```clojure
+(def simple-dsl 
+  (table tbl-name
+         "code" :char 5
+         "title" :varchar 40 :not-null [:check "title <> ''"]
+         "did" :integer :primary-key [:default "nextval('serial')"]
+         "date_prod" :date))
+```
 
 ## SQL rendering
 
