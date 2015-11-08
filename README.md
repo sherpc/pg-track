@@ -108,6 +108,20 @@ https://github.com/github/markup/issues/77
 
 ## SQL rendering
 
+### Проверка на корректность схемы
+
+Пока что просто для всех типов проверяется, что они корректны через TypeResolver.
+
+```clojure
+(defn table-is-valid?
+  [{cs :columns}]
+  (every? #(is-type-valid? resolver (:type %)) cs))
+
+(expect true (table-is-valid? test-table))
+;; Типа :bad-int не существует
+(expect false (table-is-valid? (column* table-base "id" :bad-int)))
+```
+
 ### Типы данных
 
 SQL код генерируется через протокол TypeResolver.
@@ -153,6 +167,10 @@ CREATE TABLE films (
 	date_prod date
 );
 ```
+
+## Замечания
+
+Никак не отрабатываются невалидные данные. Нужно дописать исключений, либо подумать над возвращаемым значением с ошибкой.
 
 ## License
 
