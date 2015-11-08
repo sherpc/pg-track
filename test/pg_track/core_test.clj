@@ -1,7 +1,35 @@
 (ns pg-track.core-test
-  (:require [clojure.test :refer :all]
+  (:require [expectations :refer [expect]]
             [pg-track.core :refer :all]))
 
-(deftest a-test
-  (testing "FIXME, I fail."
-    (is (= 0 1))))
+(expect nil? nil)
+(expect {:a 1} (assoc {} :a 1))
+
+(def tbl-name "films")
+(def table-base (table tbl-name))
+
+(expect {:name tbl-name :columns []} table-base)
+
+
+(def id-column {:name "id" :type :integer :size nil :null? false})
+(def code-column {:name "code" :type :char :size 5 :null? true})
+(def test-table {:name tbl-name
+                 :columns [id-column code-column]})
+
+(def test-table-dsl
+  (-> (table tbl-name)
+      (c-integer "id" false)
+      (c-char "code" 5)))
+
+(expect test-table test-table-dsl)
+
+(expect true (table-is-valid? test-table))
+(expect false (table-is-valid? (add-column table-base "id" :int nil nil)))
+
+;; remove last char
+(expect "test" (remove-last-char "test,"))
+
+(def sql (create-sql test-table))
+;; (println sql)
+;;(expect "" sql)
+

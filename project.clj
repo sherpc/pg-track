@@ -6,5 +6,9 @@
   :dependencies [[org.clojure/clojure "1.7.0"]
                  [org.clojure/java.jdbc "0.4.2"]
                  [org.postgresql/postgresql "9.4-1205-jdbc41"]
-                 
-                 ])
+                 [expectations "2.0.9"]
+                 ]
+  :plugins [[lein-expectations "0.0.7"]
+            [lein-autoexpect "1.7.0"]])
+
+
