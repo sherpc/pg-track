@@ -54,15 +54,14 @@
    (column* tbl \"id\" :integer :not-null)
    (column* tbl \"id\" :char 5 :not-null)"
   [table name & [type size & options]]
-  ;; (println "type: " type ", size: " size ", opts: " options)
   (let [type-v (if (number? size) [type size] [type])
         size? (or (nil? size) (number? size))
-        opts (if size? options (concat [size] options))
+        opts (if size? options (into [size] options))
         options-v (parse-options opts)
         column {:name name :type type-v :options options-v}]
     (update-in table [:columns] conj column)))
 
-(defn extract-columns 
+(defn extract-columns
   [columns]
   (->> columns
        (partition-by string?)
@@ -71,11 +70,11 @@
        ))
 
 (defn table
-  "Columns need to be in format string column name, when type keyword, when optional type size, when optional options"
+  "Columns need to be in format string column name, when type keyword, when optional type size, when optional options."
   [name & columns]
   (let [cs (extract-columns columns)
         tbl (table* name)]
-    (reduce #(apply column* % %2) tbl cs)))
+    (reduce (partial apply column*) tbl cs)))
 
 ;; Check shemas
 
