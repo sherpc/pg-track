@@ -62,12 +62,20 @@
         column {:name name :type type-v :options options-v}]
     (update-in table [:columns] conj column)))
 
-(defn extract-columns [xs] xs)
+(defn extract-columns 
+  [columns]
+  (->> columns
+       (partition-by string?)
+       (partition 2)
+       (map (fn [[[name] opts]] (into [name] opts)))
+       ))
 
 (defn table
   "Columns need to be in format string column name, when type keyword, when optional type size, when optional options"
   [name & columns]
-  name)
+  (let [cs (extract-columns columns)
+        tbl (table* name)]
+    (reduce #(apply column* % %2) tbl cs)))
 
 ;; Check shemas
 

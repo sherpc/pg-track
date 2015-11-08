@@ -25,6 +25,13 @@
 (def test-table {:name tbl-name
                  :columns [code-column title-column id-column date-column]})
 
+(def simple-dsl 
+  (table tbl-name
+         "code" :char 5
+         "title" :varchar 40 :not-null [:check "title <> ''"]
+         "did" :integer :primary-key [:default "nextval('serial')"]
+         "date_prod" :date))
+
 (def test-table-dsl
   (-> table-base
       (column* "code" :char 5)
@@ -53,7 +60,25 @@
 (expect {:not-null nil} (parse-options [:not-null]))
 (expect opts (parse-options [:primary-key :not-null [:check "name <> ''"]]))
 
+;; table dsl
+
+(expect 
+ [["code" :char 5]] 
+ (extract-columns ["code" :char 5]))
+
+(expect 
+ [["code" :char 5] ["date_prod" :date]]
+ (extract-columns ["code" :char 5 "date_prod" :date]))
+
+(expect 
+ {:name tbl-name :columns [code-column]} 
+ (table tbl-name "code" :char 5))
+
+(expect 
+ {:name tbl-name :columns [code-column id-column]} 
+ (table tbl-name "code" :char 5 "did" :integer :primary-key [:default "nextval('serial')"]))
+
+(expect test-table-dsl simple-dsl)
+
 ;; (def sql (create-sql test-table-dsl))
 ;; (println sql)
-;;(expect "" sql)
-
