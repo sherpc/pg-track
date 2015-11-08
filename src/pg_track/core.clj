@@ -1,13 +1,11 @@
 (ns pg-track.core
-  (:require [clojure.java.jdbc :as j]
-            [clojure.string :as cljs]))
+  (:require [clojure.string :as cljs]))
 
-(def db {:subprotocol "postgresql"
-         :subname "//127.0.0.1:5432/test"
-         :user "postgres"
-         :password "postgres"})
+;; Helpers
 
-(def row {:id 1 :name "Tester"})
+(defn wrap-brackets
+  [s]
+  (str "(" s ")"))
 
 ;; Types
 
@@ -20,7 +18,7 @@
 (defn build-type-sql
   [[type size]]
   (str (clojure.core/name type)
-       (when size (str "(" size ")"))))
+       (when size (wrap-brackets size))))
 
 (defrecord SimpleTypeResolver [types]
   TypeResolver
@@ -83,10 +81,6 @@
   (every? #(is-type-valid? resolver (:type %)) cs))
 
 ;; Generate sql
-
-(defn wrap-brackets
-  [s]
-  (str "(" s ")"))
 
 (def available-options
   {:primary-key (constantly "PRIMARY KEY")

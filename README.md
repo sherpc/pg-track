@@ -3,6 +3,11 @@
 A Clojure library that allows create Postgresql DDL via DSL.
 Also supports restoring DSL from database and creating diff migrations.
 
+### Немножно грусти
+
+Оказывается, гитхаб не поддерживает рендеринг --- в mdash :(
+https://github.com/github/markup/issues/77
+
 ## Внутреннее представление
 
 ### Таблица
@@ -41,6 +46,22 @@ Also supports restoring DSL from database and creating diff migrations.
 Он позволяет получить sql-представление типа и проверить на существование и корректность.
 
 Сейчас реализован SimpleTypeResolver. Он хранит множество допустимых типов в виде keyword'ов. При проверке мы просто проверяем, есть ли тип в множестве. Храним тип в виде вектора из двух элементов --- keyword типа и опционально размер. Например, `[:integer]`, или `[:char 5]`. В sql выводится как (name keyword) + размер, если нужно. Минусы текущей реализации --- нет проверки на размер типа (можно указать размер у integer и не указать размер у char, что некорректно для БД). В будущем, возможно подключить prismatic/scheme для хранения типов.
+
+```clojure
+(def column-types #{:char :varchar :integer :date})
+
+(defn build-type-sql
+  [[type size]]
+  (str (clojure.core/name type)
+       (when size (wrap-brackets size))))
+
+(defrecord SimpleTypeResolver [types]
+  TypeResolver
+  (get-sql-string [_ type] (build-type-sql type))
+  (is-type-valid? [_ [type]] (types type)))
+
+(def resolver (->SimpleTypeResolver column-types))
+```
 
 ## DSL
 
