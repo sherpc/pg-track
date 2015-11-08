@@ -1,14 +1,35 @@
 # pg-track
 
-A Clojure library designed to ... well, that part is up to you.
+A Clojure library that allows create Postgresql DDL via DSL.
+Also supports restoring DSL from database and creating diff migrations.
 
-## Usage
+## Внутреннее представление
 
-FIXME
+### Таблица
+
+Таблица хранится как hashmap вида:
+
+```
+{:name "table-name"
+ :columns [vector-of-columns]
+ :constraints [vector-of-constraints]}
+```
+
+### Колонка
+
+### Типы данных
+
+## DSL
+
+### Таблица
+
+### Добавление колонки
+
+### Общий dsl для описания таблицы
 
 ## License
 
-Copyright © 2015 FIXME
+Copyright © 2015 Aleksandr Sher
 
 Distributed under the Eclipse Public License either version 1.0 or (at
 your option) any later version.

@@ -1,6 +1,6 @@
 (defproject pg-track "0.1.0-SNAPSHOT"
   :description "Postgresql migration and schema DSL tool."
-  :url "http://example.com/FIXME"
+  :url "https://github.com"
   :license {:name "Eclipse Public License"
             :url "http://www.eclipse.org/legal/epl-v10.html"}
   :dependencies [[org.clojure/clojure "1.7.0"]
@@ -10,5 +10,3 @@
                  ]
   :plugins [[lein-expectations "0.0.7"]
             [lein-autoexpect "1.7.0"]])
-
-
