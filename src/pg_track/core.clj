@@ -31,30 +31,20 @@
 
 ;; Table
 
-(defn table
+(defn table*
   [name]
   {:name name
    :columns []})
 
-(defn add-column
-  [table name type null?]
+(defn column*
+  [table name type options]
   (update-in 
    table 
    [:columns] 
    conj 
    {:name name
     :type type
-    :null? null?}))
-
-(defn c-integer
-  ([table name] (c-integer table name true))
-  ([table name null?]
-   (add-column table name [:integer] null?)))
-
-(defn c-char
-  ([table name size] (c-char table name size true))
-  ([table name size null?]
-   (add-column table name [:char size] null?)))
+    :options options}))
 
 (def not-null false)
 
@@ -66,13 +56,31 @@
 
 ;; Generate sql
 
+(defn wrap-brackets
+  [s]
+  (str "(" s ")"))
+
+(def available-options
+  {:primary-key (constantly "PRIMARY KEY")
+   :not-null (constantly "NOT NULL")
+   :default #(str "DEFAULT " %)
+   :check #(str "CHECK " (wrap-brackets %))})
+
+(defn option-sql
+  [[type value]]
+  ((available-options type) value))
+
+(defn options-sql
+  [options]
+  (cljs/join " " (map option-sql options)))
+
 (defn column-sql
-  [{:keys [name type null?]}]
+  [{:keys [name type options]}]
   (str "\t" 
        name
        " "
        (get-sql-string resolver type)
-       (when-not null? " NOT NULL")))
+       (when-not (empty? options) (str " " (options-sql options)))))
 
 (defn remove-last-char
   [s] 
@@ -86,7 +94,7 @@
 
 #_(println
  (create-sql
-  (-> (table "films")
-      (c-char "code" 5)
-      (add-column "title" [:varchar 40] not-null)
-      (c-integer "did" not-null))))
+  (-> (table* "films")
+      (column* "code" [:char 5] nil)
+      (column* "title" [:varchar 40] {:not-null true :check "title <> ''"})
+      (column* "did" [:integer] {:primary-key nil :default "nextval('serial')"}))))
