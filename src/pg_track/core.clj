@@ -14,8 +14,8 @@
 (def column-types #{:char :varchar :integer :date})
 
 (defprotocol TypeResolver
-  (get-sql-string [this type] "Get sql representation of type")
-  (is-type-valid? [this type]))
+  (get-sql-string [this type] "Get sql representation of type.")
+  (is-type-valid? [this type] "Check that type is valid."))
 
 (defn build-type-sql
   [[type size]]
