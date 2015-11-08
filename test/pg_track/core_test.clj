@@ -16,23 +16,30 @@
 (expect {:name tbl-name :columns []} table-base)
 
 (def id-options {:primary-key nil, :default "nextval('serial')"})
+(def id-column-base {:name "did" :type [:integer] :options {}})
 (def id-column {:name "did" :type [:integer] :options id-options})
 (def code-column {:name "code" :type [:char 5] :options {}})
 (def title-options {:not-null nil, :check "title <> ''"})
 (def title-column {:name "title" :type [:varchar 40] :options title-options})
+(def date-column {:name "date_prod" :type [:date] :options {}})
 (def test-table {:name tbl-name
-                 :columns [code-column title-column id-column]})
+                 :columns [code-column title-column id-column date-column]})
 
 (def test-table-dsl
-  (-> (table* "films")
-      (column* "code" [:char 5])
-      (column* "title" [:varchar 40] :not-null [:check "title <> ''"])
-      (column* "did" [:integer] :primary-key [:default "nextval('serial')"])))
+  (-> table-base
+      (column* "code" :char 5)
+      (column* "title" :varchar 40 :not-null [:check "title <> ''"])
+      (column* "did" :integer :primary-key [:default "nextval('serial')"])
+      (column* "date_prod" :date)))
+
+(expect {:name tbl-name :columns [code-column]} (column* table-base "code" :char 5))
+(expect {:name tbl-name :columns [id-column-base]} (column* table-base "did" :integer))
+(expect {:name tbl-name :columns [id-column]} (column* table-base "did" :integer :primary-key [:default "nextval('serial')"]))
 
 (expect test-table test-table-dsl)
 
 (expect true (table-is-valid? test-table))
-(expect false (table-is-valid? (column* table-base "id" [:int])))
+(expect false (table-is-valid? (column* table-base "id" :int)))
 
 ;; remove last char
 (expect "test" (remove-last-char "test,"))
@@ -46,7 +53,7 @@
 (expect {:not-null nil} (parse-options [:not-null]))
 (expect opts (parse-options [:primary-key :not-null [:check "name <> ''"]]))
 
-(def sql (create-sql test-table-dsl))
-(println sql)
+;; (def sql (create-sql test-table-dsl))
+;; (println sql)
 ;;(expect "" sql)
 

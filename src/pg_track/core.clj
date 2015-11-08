@@ -47,16 +47,27 @@
   (reduce add-option {} options))
 
 (defn column*
-  [table name type & options]
-  (update-in 
-   table 
-   [:columns] 
-   conj 
-   {:name name
-    :type type
-    :options (parse-options options)}))
+  "Args format: type-keyword (size) (option-key (option-value) ...)
+   Size must be number?.
+   Example: (column* tbl \"id\" :integer)
+   (column* tbl \"id\" :char 5)
+   (column* tbl \"id\" :integer :not-null)
+   (column* tbl \"id\" :char 5 :not-null)"
+  [table name & [type size & options]]
+  ;; (println "type: " type ", size: " size ", opts: " options)
+  (let [type-v (if (number? size) [type size] [type])
+        size? (or (nil? size) (number? size))
+        opts (if size? options (concat [size] options))
+        options-v (parse-options opts)
+        column {:name name :type type-v :options options-v}]
+    (update-in table [:columns] conj column)))
 
+(defn extract-columns [xs] xs)
 
+(defn table
+  "Columns need to be in format string column name, when type keyword, when optional type size, when optional options"
+  [name & columns]
+  name)
 
 ;; Check shemas
 
