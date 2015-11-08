@@ -36,17 +36,27 @@
   {:name name
    :columns []})
 
+(defn add-option
+  [options option]
+  (if (vector? option)
+    (assoc options (option 0) (option 1))
+    (assoc options option nil)))
+
+(defn parse-options
+  [options]
+  (reduce add-option {} options))
+
 (defn column*
-  [table name type options]
+  [table name type & options]
   (update-in 
    table 
    [:columns] 
    conj 
    {:name name
     :type type
-    :options options}))
+    :options (parse-options options)}))
 
-(def not-null false)
+
 
 ;; Check shemas
 
@@ -91,10 +101,3 @@
   (let [csql (->> columns (map column-sql) (cljs/join ",\n"))] 
     (str "CREATE TABLE " name " (\n" csql "\n);")))
 
-
-#_(println
- (create-sql
-  (-> (table* "films")
-      (column* "code" [:char 5] nil)
-      (column* "title" [:varchar 40] {:not-null true :check "title <> ''"})
-      (column* "did" [:integer] {:primary-key nil :default "nextval('serial')"}))))
