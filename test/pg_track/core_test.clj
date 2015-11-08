@@ -53,8 +53,12 @@
 
 ;; options sql
 (expect "PRIMARY KEY" (option-sql [:primary-key nil]))
+
 (def opts {:primary-key nil :check "name <> ''" :not-null nil})
-(expect "PRIMARY KEY CHECK (name <> '') NOT NULL" (options-sql opts))
+
+(expect 
+ "PRIMARY KEY CHECK (name <> '') NOT NULL" 
+ (options-sql opts))
 
 ;; options dsl
 (expect {:not-null nil} (parse-options [:not-null]))
@@ -80,5 +84,5 @@
 
 (expect test-table-dsl simple-dsl)
 
-;; (def sql (create-sql test-table-dsl))
+;; (def sql (create-sql simple-dsl))
 ;; (println sql)

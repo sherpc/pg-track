@@ -110,7 +110,49 @@ https://github.com/github/markup/issues/77
 
 ### Типы данных
 
+SQL код генерируется через протокол TypeResolver.
+
 ### Опции
+
+Есть hashmap с функциями для генерации кода опций:
+
+```clojure
+(def available-options
+  {:primary-key (constantly "PRIMARY KEY")
+   :not-null (constantly "NOT NULL")
+   :default #(str "DEFAULT " %)
+   :check #(str "CHECK " (wrap-brackets %))})
+```
+
+При генерации кода по keywrod'у ищется функция и вызывается с значением опции в качестве аргумента.
+
+```clojure
+(def opts {:primary-key nil :check "name <> ''" :not-null nil})
+
+(expect 
+ "PRIMARY KEY CHECK (name <> '') NOT NULL" 
+ (options-sql opts))
+```
+
+Для расширения возможных обрабатываемых опций нужно просто расширить hashmap.
+
+### Таблица
+
+Склеиваем название таблицы, string/join колонок и внутри колонки string/join опций. Результат:
+
+```clojure
+(def sql (create-sql test-table-dsl))
+(println sql)
+```
+
+```sql
+CREATE TABLE films (
+	code char(5),
+	title varchar(40) NOT NULL CHECK (title <> ''),
+	did integer PRIMARY KEY DEFAULT nextval('serial'),
+	date_prod date
+);
+```
 
 ## License
 
