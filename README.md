@@ -9,7 +9,7 @@ Also supports restoring DSL from database and creating diff migrations.
 
 Таблица хранится как hashmap вида:
 
-```
+```clojure
 {:name "table-name"
  :columns [vector-of-columns]
  :constraints [vector-of-constraints]}
