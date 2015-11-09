@@ -33,14 +33,26 @@
 (defn extract-columns
   [columns]
   (->> columns
-       (reduce (fn [{:keys [last cs] :as r} token] 
-                 (if (< (count last) 2)
-                   (update-in r [:last] conj token)
-                   (if (string? token)
-                     {:last [token] :cs (conj cs last)}
-                     (update-in r [:last] conj token)))) 
-               {:last [] :cs []})
-       ((fn [{:keys [last cs]}] (conj cs last)))))
+       ;; Разбираем так:
+       ;; Результат reduce -- массив из двух массивов
+       ;; В первом храним разобранные колонки
+       ;; В втором -- текущую колонку
+       (reduce (fn [[cs last] token]
+                 ;; Если в колонке меньше 2х элементов
+                 ;; (название и тип),
+                 ;; либо текущий токен -- не строка,
+                 (if (or 
+                      (-> last count (< 2)) 
+                      (-> token string? not))
+                   ;; то добавляем токен в текущую колонку
+                   [cs (conj last token)]
+                   ;; А если токен -- строка, 
+                   ;; то текущую колонку сохраняем в список колонок
+                   ;; и начинаем новую с токена
+                   [(conj cs last) [token]])) 
+               [[] []])
+       ;; Не забываем добавить последнюю колонку в результат
+       (apply conj)))
 
 (defn table
   "Columns need to be in format string column name, when type keyword, when optional type size, when optional options."
