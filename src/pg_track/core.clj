@@ -1,31 +1,6 @@
 (ns pg-track.core
-  (:require [clojure.string :as cljs]))
-
-;; Helpers
-
-(defn wrap-brackets
-  [s]
-  (str "(" s ")"))
-
-;; Types
-
-(def column-types #{:char :varchar :integer :date})
-
-(defprotocol TypeResolver
-  (get-sql-string [this type] "Get sql representation of type.")
-  (is-type-valid? [this type] "Check that type is valid."))
-
-(defn build-type-sql
-  [[type size]]
-  (str (clojure.core/name type)
-       (when size (wrap-brackets size))))
-
-(defrecord SimpleTypeResolver [types]
-  TypeResolver
-  (get-sql-string [_ type] (build-type-sql type))
-  (is-type-valid? [_ [type]] (types type)))
-
-(def resolver (->SimpleTypeResolver column-types))
+  (:require [clojure.string :as cljs]
+            [pg-track.helpers :as h]))
 
 ;; Table
 
@@ -45,27 +20,27 @@
   (reduce add-option {} options))
 
 (defn column*
-  "Args format: type-keyword (size) (option-key (option-value) ...)
-   Size must be number?.
-   Example: (column* tbl \"id\" :integer)
-   (column* tbl \"id\" :char 5)
-   (column* tbl \"id\" :integer :not-null)
-   (column* tbl \"id\" :char 5 :not-null)"
-  [table name & [type size & options]]
-  (let [type-v (if (number? size) [type size] [type])
-        size? (or (nil? size) (number? size))
-        opts (if size? options (into [size] options))
-        options-v (parse-options opts)
-        column {:name name :type type-v :options options-v}]
+  "Args format: type-string (option-key (option-value) ...)
+   Example: (column* tbl \"id\" \"integer\")
+   (column* tbl \"id\" \"char(5\"))
+   (column* tbl \"id\" \"integer\" :not-null)
+   (column* tbl \"id\" \"char(5)\" :not-null)"
+  [table name type & options]
+  (let [options-v (parse-options options)
+        column {:name name :type type :options options-v}]
     (update-in table [:columns] conj column)))
 
 (defn extract-columns
   [columns]
   (->> columns
-       (partition-by string?)
-       (partition 2)
-       (map (fn [[[name] opts]] (into [name] opts)))
-       ))
+       (reduce (fn [{:keys [last cs] :as r} token] 
+                 (if (< (count last) 2)
+                   (update-in r [:last] conj token)
+                   (if (string? token)
+                     {:last [token] :cs (conj cs last)}
+                     (update-in r [:last] conj token)))) 
+               {:last [] :cs []})
+       ((fn [{:keys [last cs]}] (conj cs last)))))
 
 (defn table
   "Columns need to be in format string column name, when type keyword, when optional type size, when optional options."
@@ -74,19 +49,13 @@
         tbl (table* name)]
     (reduce (partial apply column*) tbl cs)))
 
-;; Check shemas
-
-(defn table-is-valid?
-  [{cs :columns}]
-  (every? #(is-type-valid? resolver (:type %)) cs))
-
 ;; Generate sql
 
 (def available-options
   {:primary-key (constantly "PRIMARY KEY")
    :not-null (constantly "NOT NULL")
    :default #(str "DEFAULT " %)
-   :check #(str "CHECK " (wrap-brackets %))})
+   :check #(str "CHECK " (h/wrap-brackets %))})
 
 (defn option-sql
   [[type value]]
@@ -98,10 +67,10 @@
 
 (defn column-sql
   [{:keys [name type options]}]
-  (str "\t" 
+  (str "\t"
        name
        " "
-       (get-sql-string resolver type)
+       type
        (when-not (empty? options) (str " " (options-sql options)))))
 
 (defn remove-last-char
