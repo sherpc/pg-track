@@ -5,7 +5,7 @@
 (def tbl-name "films")
 (def table-base (table* tbl-name))
 
-(expect {:name tbl-name :columns []} table-base)
+(expect {:name tbl-name :columns [] :constraints []} table-base)
 
 (def id-options {:primary-key nil, :default "nextval('serial')"})
 (def id-column-base {:name "did" :type "integer" :options {}})
@@ -15,7 +15,8 @@
 (def title-column {:name "title" :type "varchar(40)" :options title-opts})
 (def date-column {:name "date_prod" :type "date" :options {}})
 (def test-table {:name tbl-name
-                 :columns [code-column title-column id-column date-column]})
+                 :columns [code-column title-column id-column date-column]
+                 :constraints []})
 
 (def simple-dsl 
   (table tbl-name
@@ -31,9 +32,17 @@
       (column* "did" "integer" :primary-key [:default "nextval('serial')"])
       (column* "date_prod" "date")))
 
-(expect {:name tbl-name :columns [code-column]} (column* table-base "code" "char(5)"))
-(expect {:name tbl-name :columns [id-column-base]} (column* table-base "did" "integer"))
-(expect {:name tbl-name :columns [id-column]} (column* table-base "did" "integer" :primary-key [:default "nextval('serial')"]))
+(expect 
+ (assoc table-base :columns [code-column]) 
+ (column* table-base "code" "char(5)"))
+
+(expect 
+ (assoc table-base :columns [id-column-base]) 
+ (column* table-base "did" "integer"))
+
+(expect 
+ (assoc table-base :columns [id-column]) 
+ (column* table-base "did" "integer" :primary-key [:default "nextval('serial')"]))
 
 (expect test-table test-table-dsl)
 
@@ -64,11 +73,12 @@
  (extract-columns ["code" "char(5)" "date_prod" "date"]))
 
 (expect 
- {:name tbl-name :columns [code-column]} 
+ (assoc table-base :columns [code-column])
+ ;; {:name tbl-name :columns [code-column] :constraints []} 
  (table tbl-name "code" "char(5)"))
 
 (expect 
- {:name tbl-name :columns [code-column id-column]} 
+ {:name tbl-name :columns [code-column id-column] :constraints []} 
  (table tbl-name "code" "char(5)" "did" "integer" :primary-key [:default "nextval('serial')"]))
 
 (expect test-table-dsl simple-dsl)

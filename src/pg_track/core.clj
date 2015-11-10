@@ -7,7 +7,8 @@
 (defn table*
   [name]
   {:name name
-   :columns []})
+   :columns []
+   :constraints []})
 
 (defn add-option
   [options option]
