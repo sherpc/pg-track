@@ -31,6 +31,12 @@
         column {:name name :type type :options options-v}]
     (update-in table [:columns] conj column)))
 
+(defn constraints*
+  [table & constraints]
+  (assoc table 
+    :constraints
+    (reduce add-option {} constraints)))
+
 (defn extract-columns
   [columns]
   (->> columns
@@ -55,10 +61,23 @@
        ;; Не забываем добавить последнюю колонку в результат
        (apply conj)))
 
+(->> ["code" "char(5)" 
+      "did" "integer" [:default "nextval('serial')"] 
+      :constraints 
+      [:primary-key "code" "did"]
+      ]
+     (partition-by #{:constraints}))
+
+(defn split-args
+  [args]
+  (->> args
+      (partition-by #{:constraints})))
+
 (defn table
   "Columns need to be in format string column name, when type keyword, when optional type size, when optional options."
-  [name & columns]
-  (let [cs (extract-columns columns)
+  [name & args]
+  (let [[columns _ constraints] (split-args args)
+        cs (extract-columns columns)
         tbl (table* name)]
     (reduce (partial apply column*) tbl cs)))
 

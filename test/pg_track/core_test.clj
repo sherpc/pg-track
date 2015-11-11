@@ -83,5 +83,13 @@
 
 (expect test-table-dsl simple-dsl)
 
+;; Constraints
+
+(def cs {:fk "..." :unique "code"})
+
+(def w-cs (assoc simple-dsl :constraints cs))
+
+(expect w-cs (constraints* simple-dsl [:fk "..."] [:unique "code"]))
+
 ;; (def sql (create-sql simple-dsl))
 ;; (println sql)
