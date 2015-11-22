@@ -61,13 +61,6 @@
        ;; Не забываем добавить последнюю колонку в результат
        (apply conj)))
 
-(->> ["code" "char(5)" 
-      "did" "integer" [:default "nextval('serial')"] 
-      :constraints 
-      [:primary-key "code" "did"]
-      ]
-     (partition-by #{:constraints}))
-
 (defn split-args
   [args]
   (->> args

@@ -91,5 +91,6 @@
 
 (expect w-cs (constraints* simple-dsl [:fk "..."] [:unique "code"]))
 
+;; (clojure.pprint/pprint w-cs)
 ;; (def sql (create-sql simple-dsl))
 ;; (println sql)
